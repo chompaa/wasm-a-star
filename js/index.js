@@ -144,7 +144,6 @@ import("../pkg/index.js").then((lib) => {
   });
 
   document.getElementById("start").addEventListener("click", () => {
-    console.log("sup!")
     grid.clear_path();
     grid.a_star()
 

@@ -10,10 +10,12 @@ const END_COLOUR = "#FF6B6B";
 const canvas = document.getElementById("a-star-canvas");
 canvas.width = (CELL_SIZE + 1) * WIDTH + 1;
 canvas.height = (CELL_SIZE + 1) * HEIGHT + 1;
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext("2d");
 
+let wallKeyHeld = false
 let startKeyHeld = false
 let endKeyHeld = false
+let mouseDown = false
 let mouseX = 0;
 let mouseY = 0;
 
@@ -21,23 +23,27 @@ let wasm;
 
 import("../pkg/index_bg").then((mod) => {
   wasm = mod;
-})
+});
 
-document.addEventListener("keydown", () => {
-  if (event.keyCode == 83) {
+document.addEventListener("keydown", (e) => {
+  if (e.code == "KeyS") {
     startKeyHeld = true;
-  } else if (event.keyCode == 69) {
+  } else if (e.code == "KeyE") {
     endKeyHeld = true;
   }
-})
+});
 
-document.addEventListener("keyup", () => {
-  if (event.keyCode == 83) {
+document.addEventListener("keyup", (e) => {
+  if (e.code == "KeyS") {
     startKeyHeld = false;
-  } else if (event.keyCode == 69) {
+  } else if (e.code == "KeyE") {
     endKeyHeld = false;
   }
-})
+});
+
+document.addEventListener("mousedown", () => mouseDown = true);
+
+document.addEventListener("mouseup", () => mouseDown = false);
 
 import("../pkg/index.js").then((lib) => {
   const grid = lib.Grid.new(WIDTH, HEIGHT);
@@ -48,14 +54,13 @@ import("../pkg/index.js").then((lib) => {
   const drawNodes = () => {
     const nodes = new Uint8Array(wasm.memory.buffer, grid.nodes(), WIDTH * HEIGHT);
 
+    grid.clear_path();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
 
     for (let y = 0; y < HEIGHT; y++) {
       for (let x = 0; x < WIDTH; x++) {
         switch (nodes[y * WIDTH + x]) {
-          case states.DEFAULT:
-            ctx.fillStyle = DEFAULT_COLOUR;
-            break;
           case states.WALL:
             ctx.fillStyle = WALL_COLOUR;
             break;
@@ -65,9 +70,8 @@ import("../pkg/index.js").then((lib) => {
           case states.END:
             ctx.fillStyle = END_COLOUR;
             break;
-          case states.PATH:
-            ctx.fillStyle = PATH_COLOUR;
-            break;
+          default:
+            ctx.fillStyle = DEFAULT_COLOUR;
         }
 
         ctx.lineWidth = 2;
@@ -89,23 +93,20 @@ import("../pkg/index.js").then((lib) => {
     }
 
     ctx.stroke();
+
   };
 
-  const reloadCanvas = () => {
-    grid.clear_path();
-    ctx.fillRect(0, 0, WIDTH * (CELL_SIZE + 1), HEIGHT * (CELL_SIZE + 1));
-    drawNodes();
-  }
+  // first call
+  drawNodes();
 
-
-  canvas.addEventListener("mousemove", (event) => {
+  canvas.addEventListener("mousemove", (e) => {
     const boundingRect = canvas.getBoundingClientRect();
 
     const scaleX = canvas.width / boundingRect.width;
     const scaleY = canvas.height / boundingRect.height;
 
-    const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
-    const canvasTop = (event.clientY - boundingRect.top) * scaleY;
+    const canvasLeft = (e.clientX - boundingRect.left) * scaleX;
+    const canvasTop = (e.clientY - boundingRect.top) * scaleY;
 
     const x = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), HEIGHT - 1);
     const y = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), WIDTH - 1);
@@ -117,29 +118,29 @@ import("../pkg/index.js").then((lib) => {
     mouseX = x
     mouseY = y
 
-    if (event.which && !startKeyHeld && !endKeyHeld) {
-      if (event.ctrlKey) {
+    // so we may drag + hold down click to place walls
+    if (mouseDown && !startKeyHeld && !endKeyHeld) {
+      if (e.ctrlKey) {
         grid.remove_wall(mouseX, mouseY);
       } else {
         grid.add_wall(mouseX, mouseY);
       }
 
-      reloadCanvas();
+      drawNodes();
     }
   });
 
-  canvas.addEventListener("mousedown", (event) => {
+  canvas.addEventListener("mousedown", (e) => {
     if (startKeyHeld) {
       grid.set_start(mouseX, mouseY);
     } else if (endKeyHeld) {
       grid.set_end(mouseX, mouseY);
-    } else if (event.ctrlKey) {
+    } else if (e.ctrlKey) {
       grid.remove_wall(mouseX, mouseY);
     } else {
       grid.add_wall(mouseX, mouseY);
     }
 
-    reloadCanvas();
     drawNodes();
   });
 
@@ -154,7 +155,7 @@ import("../pkg/index.js").then((lib) => {
     ctx.lineJoin = "round";
 
     const path = new Uint16Array(wasm.memory.buffer, grid.get_path(), grid.get_path_count())
-    path.forEach((node, index) => {
+    path.forEach((_, index) => {
       if (path[index + 1]) {
         const curX = path[index] % WIDTH;
         const curY = Math.floor(path[index] / WIDTH);
@@ -169,10 +170,8 @@ import("../pkg/index.js").then((lib) => {
     ctx.stroke();
   });
 
-  document.getElementById("keybinds").addEventListener("click", () => {
-    alert("Start: S + Click\nEnd: E + Click\nWall (add): Click\nWall (remove): Right-click")
+  document.getElementById("binds").addEventListener("click", () => {
+    alert("Start: S + Click\nEnd: E + Click\nWall (add): Click\nRemove Wall: Ctrl + Click");
   });
-
-  drawNodes();
-})
+});
 

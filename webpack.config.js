@@ -12,7 +12,10 @@ module.exports = {
   output: {
     path: dist,
     filename: "[name].js",
-    publicPath: "/wasm-a-star/"
+    // for gh-pages deployment
+    // publicPath: "/wasm-a-star/"
+    // for local dev build
+    publicPath: ""
   },
   devServer: {
     contentBase: dist,

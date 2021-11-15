@@ -3,7 +3,7 @@ const HEIGHT = 15;
 const CELL_SIZE = 32;
 const NODE_SIZE = 24;
 const WALL_COLOUR = "#000000";
-const DEFAULT_COLOUR = "#F7FFF7";
+const DEFAULT_COLOUR = "#F2F2F2";
 const START_COLOUR = "#FFE66D";
 const END_COLOUR = "#FF6B6B";
 

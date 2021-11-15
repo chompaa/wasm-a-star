@@ -5,7 +5,7 @@
   <strong>A* pathfinding implemented in Rust with WebAssembly</strong>  
   <a href=https://chompaa.github.io/wasm-a-star/>Live preview</a>
 
-  <img src="https://user-images.githubusercontent.com/26204416/141699806-b76a5017-5d19-41b3-b8b9-4c149305ee54.jpg" width=50%>
+  <img src="https://user-images.githubusercontent.com/26204416/141709267-c182db1f-7a58-412f-b5a4-ed78873fa136.png" width=50%>
 
 </div>
 

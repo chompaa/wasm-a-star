@@ -171,7 +171,7 @@ import("../pkg/index.js").then((lib) => {
   });
 
   document.getElementById("binds").addEventListener("click", () => {
-    alert("Start: S + Click\nEnd: E + Click\nWall (add): Click\nRemove Wall: Ctrl + Click");
+    alert("Set Start: S + Click\nSet End: E + Click\nSet Wall: Click\nRemove Wall: Ctrl + Click");
   });
 });
 
